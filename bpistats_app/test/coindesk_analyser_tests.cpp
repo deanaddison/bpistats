@@ -73,6 +73,17 @@ TEST(CoindeskAnalyser, CompareSampleReportValuesToSpreadsheetCalcs)
     EXPECT_NEAR((*generatedReport1)["price_high"][boost::gregorian::to_iso_extended_string(high_date)].asFloat(), high_price, high_price * std::numeric_limits<float>::epsilon());
 }
 
+class coindesk_analyser_test : public ::testing::Test
+{
+protected:
+    coindesk_analyser_test() {}
+    virtual ~coindesk_analyser_test() {}
+
+    virtual void SetUp() {}
+    virtual void TearDown() {}
+};
+
+
 int main(int argc, char *argv[])
 {
     InitGoogleTest(&argc, argv);
