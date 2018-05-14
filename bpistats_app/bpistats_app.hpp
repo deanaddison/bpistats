@@ -7,7 +7,7 @@
 
 #include <memory>
 #include <iostream>
-#include <string_view>
+#include <string>
 
 #include <boost/date_time.hpp>
 
@@ -25,9 +25,9 @@ namespace dma
     {
     public:
         bpistats_app(int argc, char *argv[]);
-        ~bpistats_app() {}
+        ~bpistats_app();
 
-        int exec() { return 0; }
+        int exec();
 
         bool parse_options(int argc, char* argv[]);
 

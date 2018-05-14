@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
@@ -35,6 +36,12 @@ bpistats_app::bpistats_app(int argc, char *argv[]) :
 {
     parse_options(argc, argv);
 }
+
+bpistats_app::~bpistats_app()
+{
+
+}
+
 bool
 bpistats_app::parse_options(int argc, char *argv[])
 {
@@ -109,10 +116,51 @@ bpistats_app::parse_options(int argc, char *argv[])
 
 }
 
-//std::optional<Json::Value> read_file_to_Json(const std::string filepath)
+/**
+ * Read the JSON object from a local file.
+ * @param filepath
+ * @return
+ */
+std::unique_ptr< Json::Value >
+bpistats_app::read_data_from_file(const std::string& filepath)
+{
+    auto presult = std::make_unique< Json::Value >();
+    return std::move(presult);
+}
+
+/**
+ * Fetch the JSON object from a remote URL
+ * @param url
+ * @return
+ */
+//std::unique_ptr< Json::Value >
+//bpistats_app::fetch_data_from_url(const std::string& url)
 //{
-//    Json::Value result;
-//    std::ifstream bpifile(filepath, std::ifstream::binary);
+//    auto presult = std::make_unique< Json::Value >();
 //
+//    return std::move(presult);
+//}
+
+int
+bpistats_app::exec()
+{
+    int result = 0;
+
+    std::unique_ptr< Json::Value > papi_data;
+    // Create new json parser and parse file or fetch and parse url
+    if(!json_path.empty())
+    {
+        // Read file into Json::Value
+        papi_data = read_data_from_file(json_path);
+    } else {
+        // Get Json::Value from URL
+//        papi_data = fetch_data_from_url(json_url);
+    }
+
+    // Create parser and analyser to read in all the data.
+
+    // Perform analysis and generate report
+
+    return result;
 }
 
