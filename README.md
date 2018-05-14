@@ -21,7 +21,7 @@ cd build
 BOOST_ROOT=~/bin/boost/1_67_0 ~/bin/cmake_3_11_1/bin/cmake ..
 ```
 
-### Make the application:
+### Make the application and tests:
 ```
 make
 ```
@@ -54,6 +54,10 @@ Application modes:
         - e.g. _bpistats 2018-04-10 2018-05-10_
             - fetches the JSON object from:  https://api.coindesk.com/v1/bpi/historical/close.json?start=2018-04-10&end=2018-05-10
 
+### Run the tests:
+```
+output/bpistats_tests
+```
 
 ## Acknowledgements:
 This repository was intentionally intended to mimic the [Bluzelle](https://bluzelle.com) [swarmDB](https://github.com/bluzelle/swarmDB) development environment.
