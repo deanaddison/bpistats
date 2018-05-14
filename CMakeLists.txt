@@ -8,6 +8,10 @@ add_compile_options("-fdiagnostics-color=auto")
 set(warnings "-Wno-deprecated-declarations -Wall -Wextra -Werror -Wpedantic")
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${warnings})
 
+# find packages
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+include(cmake/add_gmock_test.cmake)
+
 set(MIN_BOOST_VERSION "1.66.0")
 set(Boost_USE_STATIC_LIBS OFF)
 #set(Boost_USE_MULTITHREAD OFF)
@@ -34,6 +38,17 @@ endif()
 find_package(PkgConfig REQUIRED)
 pkg_search_module(JSONCPP REQUIRED jsoncpp)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+include(cmake/googletest.cmake)
+
+get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+foreach(dir ${dirs})
+    message(STATUS "-I ${dir}")
+endforeach()
+
+enable_testing()
+
 add_subdirectory(bpistats_app)
 
 add_executable(bpistats main.cpp)
@@ -43,4 +58,3 @@ if(Boost_FOUND)
     target_link_libraries(bpistats bpistats_app ${Boost_LIBRARIES} ${JSONCPP_LIBRARIES})
 
 endif()
-
