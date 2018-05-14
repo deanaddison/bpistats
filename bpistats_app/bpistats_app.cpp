@@ -6,14 +6,15 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <stdexcept>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
+
+#include <curl/curl.h>
 #include <jsoncpp/json/json.h>
 
 #include "coindesk_analyser.hpp"
@@ -27,8 +28,21 @@ using namespace dma;
 
 namespace
 {
-    const std::string DEFAULT_URL_TO_FETCH = "https://api.coindesk.com/v1/bpi/historical/close.json?start=2018-01-01&end=2018-01-20";
-    const std::string DEFAULT_CMDLINE_DATE_FORMAT = "%Y-%m-%d";
+    const std::string DEFAULT_URL_TO_FETCH = "https://api.coindesk.com/v1/bpi/historical/close.json";
+    const std::string URL_QUERY_PARAM_BEG  = "start=";
+    const std::string URL_QUERY_PARAM_END  = "end=";
+
+    std::size_t callback(
+            const char* in,
+            std::size_t size,
+            std::size_t num,
+            std::string* out)
+    {
+        const std::size_t totalBytes(size * num);
+        out->append(in, totalBytes);
+        return totalBytes;
+    }
+
 }
 
 bpistats_app::bpistats_app(int argc, char *argv[]) :
@@ -36,13 +50,13 @@ bpistats_app::bpistats_app(int argc, char *argv[]) :
         json_path(),
         json_url(DEFAULT_URL_TO_FETCH),
         beg_date(),
-        end_date()
+        end_date(),
+        httpCode(0)
 {
-    parse_options(argc, argv);
-}
-
-bpistats_app::~bpistats_app()
-{
+    if (!parse_options(argc, argv))
+    {
+       exit(0);
+    }
 
 }
 
@@ -140,17 +154,42 @@ bpistats_app::read_data_from_file(const std::string& filepath)
 }
 
 /**
- * Fetch the JSON object from a remote URL
- * @param url
- * @return
+ * Fetch the JSON object from a remote URL.
+ * This is a synchronous call that will timeout after 10 seconds
+ * @param url fully qualified url that will return the JSON object.
+ * @return a std::unique_ptr< Json::Value > containing the JSON object, as fetched
  */
-//std::unique_ptr< Json::Value >
-//bpistats_app::fetch_data_from_url(const std::string& url)
-//{
-//    auto presult = std::make_unique< Json::Value >();
-//
-//    return std::move(presult);
-//}
+std::unique_ptr< Json::Value >
+bpistats_app::fetch_data_from_url(const std::string& url)
+{
+    auto presult = std::make_unique< Json::Value >();
+
+    // In lieu of boost::beast, use libcurl
+    CURL *curl = curl_easy_init();
+
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
+
+    // Create a string buffer to hold the info (data appended in callback, above)
+    std::unique_ptr< std::string > httpData(new std::string());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, callback);   // Callback , above
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpData.get()); //
+
+    curl_easy_perform(curl);  // Blocking call with timeout.
+
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
+    curl_easy_cleanup(curl);
+
+    Json::Reader jsonReader;
+    if (httpCode != 200 || !jsonReader.parse(*httpData, *presult))
+    {
+        std::stringstream ss;
+        ss << "ERROR fetching data from URL:  " << url << ", httpCode == " << std::to_string(httpCode);
+        throw std::invalid_argument( ss.str() );
+    }
+
+    return std::move(presult);
+}
 
 int
 bpistats_app::exec()
@@ -165,7 +204,7 @@ bpistats_app::exec()
         papi_data = read_data_from_file(json_path);
     } else {
         // Get Json::Value from URL
-//        papi_data = fetch_data_from_url(json_url);
+        papi_data = fetch_data_from_url(json_url);
     }
 
     // Create parser and analyser to read in all the data.

@@ -34,7 +34,7 @@ namespace dma
         void fetch_complete(std::unique_ptr< Json::Value > data);
 
         std::unique_ptr< Json::Value > read_data_from_file(const std::string& filepath);
-//        std::unique_ptr< Json::Value > fetch_data_from_url(const std::string& url);
+        std::unique_ptr< Json::Value > fetch_data_from_url(const std::string& url);
 
     private:
 
@@ -46,6 +46,7 @@ namespace dma
         boost::gregorian::date beg_date;  //!< Inclusive starting data for analysis
         boost::gregorian::date end_date;  //!< Inclusive ending date for analysis
 
+        int httpCode;
     };
 }
 
