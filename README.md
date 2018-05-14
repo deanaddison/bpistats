@@ -7,7 +7,7 @@ Requirements:
  - cmake 3.10 (or greater, recommend 3.11.1)
     - instructions, below, assume installation to:  ~/bin/cmake_3_11_1/bin/cmake
  - boost 1.66 (or greater, recommend 1.67.0)
-    - set up BOOST_ROOT environment variable to point to isntallation folder (or use shortcut below)
+    - set up BOOST_ROOT environment variable to point to isntallation folder (or use "shortcut" below)
     - can install with `toolchain/install-boost.sh -h`
     - instructions, below, assume installation to:  ~/bin/boost/1_67_0
  - googletest (auto installs on make)
@@ -18,6 +18,14 @@ git clone https://github.com/deanaddison/bpistats.git
 cd bpistats
 mkdir build
 cd build
+```
+
+If you have BOOST_ROOT set appropriately and cmake in PATH, then (from build folder):
+```
+cmake ..
+```
+Otherwise, you can use this "shortcut" (from build folder):
+```
 BOOST_ROOT=~/bin/boost/1_67_0 ~/bin/cmake_3_11_1/bin/cmake ..
 ```
 
