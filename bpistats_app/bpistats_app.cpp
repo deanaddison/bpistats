@@ -51,6 +51,7 @@ namespace
  * @param argv the C-array of char* string from the options on the command-line
  */
 bpistats_app::bpistats_app(int argc, char *argv[]) :
+        valid_init(false),
         app_name( argv[0] ? boost::filesystem::basename(argv[0]) : "app" ),  // argv[argc] == nullptr
         json_path(),
         json_url(DEFAULT_URL_TO_FETCH),
@@ -58,11 +59,7 @@ bpistats_app::bpistats_app(int argc, char *argv[]) :
         end_date(),
         httpCode(0)
 {
-    if (!parse_options(argc, argv))
-    {
-       exit(0);
-    }
-
+    valid_init = parse_options(argc, argv);
 }
 
 /**
@@ -99,7 +96,7 @@ bpistats_app::parse_options(int argc, char *argv[])
 
         bpo::notify(vm);
 
-        if (vm.count("help"))
+        if (vm.count("help") || argc == 1)
         {
             std::cout << "Usage:" << std::endl;
             std::cout << "    " << app_name << " [options | path | {begin_date end_date}]" << std::endl;
@@ -156,6 +153,7 @@ bpistats_app::parse_options(int argc, char *argv[])
             }
 
         }
+
     }
     catch (bpo::required_option& e)
     {
@@ -242,29 +240,34 @@ bpistats_app::exec()
 {
     int result = 0;
 
-    // Create new json parser and parse file or fetch and parse url
-    std::unique_ptr< Json::Value > papi_data;
-    if(!json_path.empty())
+    if(valid_init)
     {
-        // Read file into Json::Value
-        papi_data = read_data_from_file(json_path);
-    } else {
-        // Get Json::Value from URL
-        papi_data = fetch_data_from_url(json_url);
+
+        // Create new json parser and parse file or fetch and parse url
+        std::unique_ptr<Json::Value> papi_data;
+        if (!json_path.empty())
+        {
+            // Read file into Json::Value
+            papi_data = read_data_from_file(json_path);
+        } else
+        {
+            // Get Json::Value from URL
+            papi_data = fetch_data_from_url(json_url);
+        }
+
+        // Create analyser and load it with the JSON object.
+        coindesk_analyser analyser(papi_data);
+
+        // Perform analysis and generate report
+        auto report = analyser.generate_report();
+
+        if (report)
+        {
+            std::cout << "Analysis report:" << std::endl;
+            std::cout << *report << std::endl;
+        }
+
     }
-
-    // Create analyser and load it with the JSON object.
-    coindesk_analyser analyser(papi_data);
-
-    // Perform analysis and generate report
-    auto report = analyser.generate_report();
-
-    if(report)
-    {
-        std::cout << "Analysis report:" << std::endl;
-        std::cout << *report << std::endl;
-    }
-
     return result;
 }
 

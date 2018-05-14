@@ -36,6 +36,8 @@ namespace dma
 
     private:
 
+        bool valid_init;       //!< Command-line params parsed correctly.
+
         std::string app_name;  //!< Captured command-line name of app for use in reports
 
         std::string json_path;  //!< Path to file
