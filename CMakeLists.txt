@@ -15,7 +15,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options("-fdiagnostics-color=auto")
 
-set(warnings "-Wno-deprecated-declarations -Wall -Wextra -Werror -Wpedantic")
+#set(warnings "-Wno-deprecated-declarations -Wall -Wextra -Werror -Wpedantic")
+set(warnings "-Wno-deprecated-declarations -Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} ${warnings})
 
 # find packages
