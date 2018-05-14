@@ -2,6 +2,16 @@ cmake_minimum_required(VERSION 3.10)
 
 project(dma CXX)
 
+# use ccache if available...
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)
+
+# output dir
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)
+
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options("-fdiagnostics-color=auto")
 
@@ -14,7 +24,7 @@ include(cmake/add_gmock_test.cmake)
 
 set(MIN_BOOST_VERSION "1.66.0")
 set(Boost_USE_STATIC_LIBS OFF)
-#set(Boost_USE_MULTITHREAD OFF)
+set(Boost_USE_MULTITHREAD ON)
 
 find_package(Boost ${MIN_BOOST_VERSION}
         REQUIRED
