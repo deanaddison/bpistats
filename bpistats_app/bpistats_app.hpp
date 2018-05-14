@@ -1,5 +1,5 @@
 //
-// Created by daddison on 09/05/18.
+// Created by daddison
 //
 
 #ifndef BPISTATS_BPISTATS_HPP

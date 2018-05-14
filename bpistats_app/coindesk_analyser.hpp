@@ -1,5 +1,5 @@
 //
-// Created by daddison.
+// Created by daddison
 //
 
 #ifndef DMA_COINDESK_RESULT_HPP

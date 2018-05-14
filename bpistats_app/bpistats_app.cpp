@@ -1,5 +1,5 @@
 //
-// Created by daddison on 09/05/18.
+// Created by daddison
 //
 
 #include <memory>
@@ -12,6 +12,8 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
 #include <jsoncpp/json/json.h>
 
 #include "coindesk_analyser.hpp"
