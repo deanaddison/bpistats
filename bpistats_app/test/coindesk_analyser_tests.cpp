@@ -1,3 +1,6 @@
+//
+// Created by daddison
+//
 
 #include <memory>
 #include <string>
@@ -6,6 +9,7 @@
 #include <limits>
 
 #include <jsoncpp/json/json.h>
+#include "bpistats_app/coindesk_analyser.hpp"
 #include "gtest/gtest.h"
 
 using namespace ::testing;
@@ -45,6 +49,28 @@ TEST(CoindeskAnalyser, NoThrowWithSampleJson)
     sample >> *psampleJson1;
     EXPECT_NO_THROW(coindesk_analyser ca(psampleJson1));
 
+    coindesk_analyser cda(psampleJson1);
+    EXPECT_NO_THROW(std::unique_ptr< Json::Value > generatedReport1{cda.generate_report()});
+
+}
+
+TEST(CoindeskAnalyser, CompareSampleReportValuesToSpreadsheetCalcs)
+{
+    std::ifstream sample(sampleJsonFilePath, std::ifstream::binary);
+    std::unique_ptr< Json::Value > psampleJson1 = std::make_unique< Json::Value >();
+    sample >> *psampleJson1;
+
+    coindesk_analyser cda(psampleJson1);
+
+    std::unique_ptr< Json::Value > generatedReport1 = cda.generate_report();
+
+    EXPECT_EQ(  (*generatedReport1)["price_count"].asInt(), 31);
+    EXPECT_NEAR((*generatedReport1)["price_average"].asFloat(), average, average * std::numeric_limits<float>::epsilon());
+    EXPECT_NEAR((*generatedReport1)["price_median"].asFloat(),   median,  median * std::numeric_limits<float>::epsilon());
+    EXPECT_NEAR((*generatedReport1)["price_stddev"].asFloat(),   stddev,  stddev * std::numeric_limits<float>::epsilon());
+
+    EXPECT_NEAR((*generatedReport1)["price_low"][boost::gregorian::to_iso_extended_string(low_date)].asFloat(),   low_price,  low_price  * std::numeric_limits<float>::epsilon());
+    EXPECT_NEAR((*generatedReport1)["price_high"][boost::gregorian::to_iso_extended_string(high_date)].asFloat(), high_price, high_price * std::numeric_limits<float>::epsilon());
 }
 
 int main(int argc, char *argv[])
