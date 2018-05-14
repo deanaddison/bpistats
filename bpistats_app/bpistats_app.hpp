@@ -10,6 +10,7 @@
 #include <string>
 
 #include <boost/date_time.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 
 
 // Forward Declaration
@@ -31,8 +32,8 @@ namespace dma
 
         bool parse_options(int argc, char* argv[]);
 
-        std::unique_ptr< Json::Value > read_data_from_file(const std::string& filepath);
-        std::unique_ptr< Json::Value > fetch_data_from_url(const std::string& url);
+        std::unique_ptr< boost::property_tree::ptree > read_data_from_file(const std::string& filepath);
+        std::unique_ptr< boost::property_tree::ptree > fetch_data_from_url(const std::string& url);
 
     private:
 

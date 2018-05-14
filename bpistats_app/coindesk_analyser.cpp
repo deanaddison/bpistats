@@ -10,14 +10,16 @@
 #include <cmath>
 
 #include <boost/date_time.hpp>
-#include <jsoncpp/json/json.h>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include "coindesk_analyser.hpp"
 
 
 using namespace dma;
 
-namespace bg = boost::gregorian;
+namespace bg = boost::gregorian;      // from <boost/date_time.hpp>
+namespace pt = boost::property_tree;  // from <boost/property_tree/ptree.hpp>
 
 const std::string coindesk_analyser::SOURCE_KEY_JSON_PRICE_OBJECT = "bpi";
 const std::string coindesk_analyser::SOURCE_KEY_JSON_TIME_OBJECT  = "time";
@@ -30,7 +32,7 @@ const std::string coindesk_analyser::REPORT_KEY_PRICE_AVG    = "price_average";
 const std::string coindesk_analyser::REPORT_KEY_PRICE_MED    = "price_median";
 const std::string coindesk_analyser::REPORT_KEY_PRICE_STDDEV = "price_stddev";
 
-coindesk_analyser::coindesk_analyser(std::unique_ptr< Json::Value >& papi_data) :
+coindesk_analyser::coindesk_analyser(std::unique_ptr< pt::ptree >& papi_data) :
     close_data(),
     m_updated()
 {
@@ -51,21 +53,25 @@ coindesk_analyser::coindesk_analyser(std::unique_ptr< Json::Value >& papi_data) 
  * @return a std::vector< std::pair< boost::gregorian::data, float > > containing the unsorted values from api_data
  */
 price_data_t
-coindesk_analyser::parse_price_data(std::unique_ptr< Json::Value >& papi_data) const
+coindesk_analyser::parse_price_data(std::unique_ptr< pt::ptree >& papi_data) const
 {
     auto result = price_data_t();
 
-    if(papi_data)
+    if(papi_data && !papi_data->empty())
     {
 
-        auto const data = (*papi_data)[SOURCE_KEY_JSON_PRICE_OBJECT];
-        auto keys = data.getMemberNames();
+        const pt::ptree& data = papi_data->get_child(SOURCE_KEY_JSON_PRICE_OBJECT);
 
-        std::transform(keys.begin(), keys.end(), std::back_inserter(result), [&data](auto& key)
+        if(!data.empty())
         {
-            return std::make_pair< bg::date, float >(bg::from_simple_string(key), data[key].asFloat());
+            std::transform(data.begin(), data.end(), std::back_inserter(result),
+                           [](const std::pair<std::string, pt::ptree> &elem)
+                           {
+                               return std::make_pair<bg::date, float>(bg::from_simple_string(elem.first),
+                                                                      elem.second.get_value<float>());
 
-        });
+                           });
+        }
 
     }
 
@@ -81,13 +87,13 @@ coindesk_analyser::parse_price_data(std::unique_ptr< Json::Value >& papi_data) c
  *  - median:  median price for the range
  * @return
  */
-std::unique_ptr< Json::Value >
+std::unique_ptr< pt::ptree >
 coindesk_analyser::generate_report()
 {
-    auto presult = std::make_unique< Json::Value >();
+    auto presult = std::make_unique< pt::ptree >();
 
     const unsigned int count = close_data.size();
-    if(count > 0)
+    if(count > 0 && presult)
     {
         std::pair<bg::date, float>& firstelem{close_data[0]};
         std::pair<bg::date, float> lowpoint{firstelem};
@@ -138,12 +144,14 @@ coindesk_analyser::generate_report()
         std::partial_sort(prices.begin(), std::next(prices.begin(), leftmiddle + 1), prices.end());      // ... + 1 for num to sort
         float median = even ? (prices[leftmiddle] + prices[leftmiddle + 1]) / 2.0f : prices[leftmiddle];  // find mean (if even) or value (if odd)
 
-        (*presult)[REPORT_KEY_PRICE_LOW][bg::to_iso_extended_string(lowpoint.first)]   = lowpoint.second;
-        (*presult)[REPORT_KEY_PRICE_HIGH][bg::to_iso_extended_string(highpoint.first)] = highpoint.second;
-        (*presult)[REPORT_KEY_PRICE_COUNT]  = count;
-        (*presult)[REPORT_KEY_PRICE_AVG]    = mean;
-        (*presult)[REPORT_KEY_PRICE_MED]    = median;
-        (*presult)[REPORT_KEY_PRICE_STDDEV] = stddev;
+        const std::string lowdate(REPORT_KEY_PRICE_LOW+"."+bg::to_iso_extended_string(lowpoint.first));
+        presult->add(lowdate, lowpoint.second);
+        const std::string highdate(REPORT_KEY_PRICE_HIGH+"."+bg::to_iso_extended_string(highpoint.first));
+        presult->add(highdate, highpoint.second);
+        presult->add(REPORT_KEY_PRICE_COUNT, count);
+        presult->add(REPORT_KEY_PRICE_AVG, mean);
+        presult->add(REPORT_KEY_PRICE_MED, median);
+        presult->add(REPORT_KEY_PRICE_STDDEV, stddev);
     }
     return std::move(presult);
 }

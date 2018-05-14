@@ -13,6 +13,9 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/date_time.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 
 #include <curl/curl.h>
 #include <jsoncpp/json/json.h>
@@ -23,6 +26,7 @@
 
 namespace bpo = boost::program_options;
 namespace bg = boost::gregorian;          // from <boost/date_time.hpp>
+namespace pt = boost::property_tree;      // from <boost/property_tree/ptree.hpp>
 
 using namespace dma;
 
@@ -174,17 +178,20 @@ bpistats_app::parse_options(int argc, char *argv[])
  * @param filepath the path to a local file.
  * @return a std::unique_ptr< Json::Value > containing the JSON object from the file
  */
-std::unique_ptr< Json::Value >
+std::unique_ptr< pt::ptree >
 bpistats_app::read_data_from_file(const std::string& filepath)
 {
-    auto presult = std::make_unique< Json::Value >();
-    std::ifstream bpifile(filepath, std::ifstream::binary);
+    auto presult = std::make_unique< pt::ptree >();
 
-    if(presult && bpifile)
+    if(presult)
     {
-        bpifile >> *presult;
+
+        pt::read_json(filepath, *presult);
+
     } else {
-        throw std::invalid_argument("File not found:  " + filepath);
+
+        throw std::invalid_argument("Can not open or read file:  " + filepath);
+
     }
 
     return std::move(presult);
@@ -196,35 +203,43 @@ bpistats_app::read_data_from_file(const std::string& filepath)
  * @param url fully qualified url that will return the JSON object.
  * @return a std::unique_ptr< Json::Value > containing the JSON object, as fetched
  */
-std::unique_ptr< Json::Value >
+std::unique_ptr< pt::ptree >
 bpistats_app::fetch_data_from_url(const std::string& url)
 {
-    auto presult = std::make_unique< Json::Value >();
+    auto presult = std::make_unique< pt::ptree >();
 
-    // In lieu of boost::beast, use libcurl
-    CURL *curl = curl_easy_init();
-
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
-
-    // Create a string buffer to hold the info (data appended in callback, above)
-    std::unique_ptr< std::string > httpData(new std::string());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, callback);   // Callback , above
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpData.get()); //
-
-    curl_easy_perform(curl);  // Blocking call with timeout.
-
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
-    curl_easy_cleanup(curl);
-
-    Json::Reader jsonReader;
-    if (httpCode != 200 || !jsonReader.parse(*httpData, *presult))
+    if(presult)
     {
-        std::stringstream ss;
-        ss << "ERROR fetching data from URL:  " << url << ", httpCode == " << std::to_string(httpCode);
-        throw std::invalid_argument( ss.str() );
-    }
+        // In lieu of boost::beast, use libcurl
+        CURL *curl = curl_easy_init();
 
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10);
+
+        // Create a string buffer to hold the info (data appended in callback, above)
+        std::unique_ptr<std::string> httpData(new std::string());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, callback);   // Callback , above
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, httpData.get()); //
+
+        curl_easy_perform(curl);  // Blocking call with timeout.
+
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
+        curl_easy_cleanup(curl);
+
+        if (httpCode == 200)
+        {
+
+            std::stringstream ss(*httpData);
+            pt::read_json(ss, *presult);
+
+        } else {
+
+            std::stringstream ss;
+            ss << "ERROR fetching data from URL:  " << url << ", httpCode == " << std::to_string(httpCode);
+            throw std::invalid_argument(ss.str());
+
+        }
+    }
     return std::move(presult);
 }
 
@@ -244,7 +259,7 @@ bpistats_app::exec()
     {
 
         // Create new json parser and parse file or fetch and parse url
-        std::unique_ptr<Json::Value> papi_data;
+        std::unique_ptr< pt::ptree > papi_data;
         if (!json_path.empty())
         {
             // Read file into Json::Value
@@ -259,12 +274,12 @@ bpistats_app::exec()
         coindesk_analyser analyser(papi_data);
 
         // Perform analysis and generate report
-        auto report = analyser.generate_report();
+        auto preport = analyser.generate_report();
 
-        if (report)
+        if (preport)
         {
             std::cout << "Analysis report:" << std::endl;
-            std::cout << *report << std::endl;
+            pt::write_json( std::cout, *preport );
         }
 
     }

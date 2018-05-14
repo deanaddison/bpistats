@@ -9,6 +9,7 @@
 #include <string>
 
 #include <boost/date_time.hpp>
+#include <boost/property_tree/ptree_fwd.hpp>
 
 // Forward Declarations
 namespace Json { class Value; }
@@ -35,15 +36,15 @@ namespace dma {
         static const std::string REPORT_KEY_PRICE_STDDEV;  //!< generated report key for price standard deviation
 
     public:
-        explicit coindesk_analyser(std::unique_ptr< Json::Value >& papi_data);
+        explicit coindesk_analyser(std::unique_ptr< boost::property_tree::ptree >& papi_data);
 
         virtual ~coindesk_analyser() {}
 
-        std::unique_ptr< Json::Value > generate_report();
+        std::unique_ptr< boost::property_tree::ptree > generate_report();
 
     protected:
 
-        price_data_t parse_price_data(std::unique_ptr< Json::Value >& papi_data) const;
+        price_data_t parse_price_data(std::unique_ptr< boost::property_tree::ptree >& papi_data) const;
 
     private:
         price_data_t close_data;
