@@ -47,7 +47,6 @@ if(Boost_FOUND)
 endif()
 
 find_package(PkgConfig REQUIRED)
-pkg_search_module(JSONCPP REQUIRED jsoncpp)
 find_package(CURL REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CURL_INCLUDE_DIR})
@@ -67,6 +66,6 @@ add_executable(bpistats main.cpp)
 
 if(Boost_FOUND)
 
-    target_link_libraries(bpistats bpistats_app pthread ${CURL_LIBRARIES} ${Boost_LIBRARIES} ${JSONCPP_LIBRARIES})
+    target_link_libraries(bpistats bpistats_app pthread ${CURL_LIBRARIES} ${Boost_LIBRARIES})
 
 endif()
