@@ -25,13 +25,11 @@ namespace dma
     {
     public:
         bpistats_app(int argc, char *argv[]);
-        ~bpistats_app();
+        ~bpistats_app() = default;
 
         int exec();
 
         bool parse_options(int argc, char* argv[]);
-
-        void fetch_complete(std::unique_ptr< Json::Value > data);
 
         std::unique_ptr< Json::Value > read_data_from_file(const std::string& filepath);
         std::unique_ptr< Json::Value > fetch_data_from_url(const std::string& url);
