@@ -7,9 +7,19 @@
 
 int main(int argc, char *argv[])
 {
+    int result = -1;
 
-    dma::bpistats_app app(argc, argv);
+    try
+    {
+        dma::bpistats_app app(argc, argv);
 
-    return app.exec();
+        result = app.exec();
+    }
+    catch(std::exception& e)
+    {
+        std::cerr << "ERROR:  Unhandled exception on startup:  " << e.what() << std::endl;
+    }
+
+    return result;
 
 }
