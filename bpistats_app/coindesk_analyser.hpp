@@ -27,6 +27,13 @@ namespace dma {
         static const std::string SOURCE_KEY_JSON_TIME_OBJECT;   //!< incoming key for object containing update times.
         static const std::string SOURCE_KEY_JSON_TIME_UPDATE;   //!< incoming key for desired update time.
 
+        static const std::string REPORT_KEY_PRICE_LOW;     //!< generated report key for lowest price
+        static const std::string REPORT_KEY_PRICE_HIGH;    //!< generated report key for highest price
+        static const std::string REPORT_KEY_PRICE_COUNT;   //!< generated report key for number of prices analysed
+        static const std::string REPORT_KEY_PRICE_AVG;     //!< generated report key for average price
+        static const std::string REPORT_KEY_PRICE_MED;     //!< generated report key for median price
+        static const std::string REPORT_KEY_PRICE_STDDEV;  //!< generated report key for price standard deviation
+
     public:
         explicit coindesk_analyser(std::unique_ptr< Json::Value >& papi_data);
 
