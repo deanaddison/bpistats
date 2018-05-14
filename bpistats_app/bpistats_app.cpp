@@ -14,6 +14,8 @@
 #include <boost/date_time.hpp>
 #include <jsoncpp/json/json.h>
 
+#include "coindesk_analyser.hpp"
+
 #include "bpistats_app.hpp"
 
 namespace bpo = boost::program_options;
@@ -125,6 +127,13 @@ std::unique_ptr< Json::Value >
 bpistats_app::read_data_from_file(const std::string& filepath)
 {
     auto presult = std::make_unique< Json::Value >();
+    std::ifstream bpifile(filepath, std::ifstream::binary);
+
+    if(presult && bpifile)
+    {
+        bpifile >> *presult;
+    }
+
     return std::move(presult);
 }
 
@@ -158,8 +167,18 @@ bpistats_app::exec()
     }
 
     // Create parser and analyser to read in all the data.
+    coindesk_analyser analyser(papi_data);
 
     // Perform analysis and generate report
+    auto report = analyser.generate_report();
+
+    std::cout << std::endl;
+
+    if(report)
+    {
+        std::cout << "Analysis report:" << std::endl;
+        std::cout << *report << std::endl;
+    }
 
     return result;
 }
