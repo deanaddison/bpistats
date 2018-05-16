@@ -24,13 +24,13 @@ namespace
     char * argv_onefile[]{"bpistats_app", "test.json", nullptr};
 
     int argc_dates(3);
-    char * argv_dates[]{"bpistats_app", "2018-10-04", "2018-05-10", nullptr};
+    char * argv_dates[]{"bpistats_app", "2018-01-01", "2018-01-20", nullptr};
 
     int argc_help(3);
-    char *argv_help[]{"bpistats_app", "--help", "2018-10-04", nullptr};
+    char *argv_help[]{"bpistats_app", "--help", "2018-01-01", nullptr};
 
     int argc_missingfile(2);
-    char *argv_missingfile[]{"bpistats_app", "2018-10-04", nullptr};
+    char *argv_missingfile[]{"bpistats_app", "2018-01-01", nullptr};
 
 } // namespace
 
