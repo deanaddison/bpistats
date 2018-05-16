@@ -36,7 +36,7 @@ make
 
 ### Run the application:
 ```
-output/bpistats 2018-04-10 2018-05-10
+bpistats 2018-04-10 2018-05-10
 ```
 Usage:
 ```
@@ -64,7 +64,7 @@ Application modes:
 
 ### Run the tests:
 ```
-output/bpistats_tests
+bpistats_tests
 ```
 
 ## Acknowledgements:
